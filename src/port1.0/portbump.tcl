@@ -157,6 +157,39 @@ proc portbump::bump_main {args} {
         # based on the previously calculated values, plus our default types
         set sums {}
 
+        foreach distfile $all_dist_files {
+            if {[llength $all_dist_files] > 1} {
+                lappend sums $distfile
+            }
+
+            set missing_types $portchecksum::default_checksum_types
+
+            # Append the string for the calculated types and note any of
+            # our default types that were already calculated
+            if {[info exists calculated_checksums_array($distfile)] && [llength $calculated_checksums_array($distfile)]} {
+                set calculated_checksums $calculated_checksums_array($distfile)
+                foreach {type sum} $calculated_checksums {
+                    set found [lsearch -exact ${missing_types} ${type}];
+                    if { ${found} != -1} {
+                        set missing_types [lreplace ${missing_types} ${found} ${found}]
+                    }
+                }
+            }
+
+            # Append the string for any of our default types that were
+            # not previously calculated
+            if {[llength $missing_types]} {
+                # get the full path of the distfile.
+                set fullpath [file join $distpath $distfile]
+                if {![file isfile $fullpath]} {
+                    return -code error "$distfile does not exist in $distpath"
+                }
+                # foreach type $missing_types {
+                #     lappend both_checksums $type "-" [portchecksum::calc_$type $fullpath]
+                # }
+            }
+        }
+
         global version revision
 
         ui_msg "We will bump these:"
