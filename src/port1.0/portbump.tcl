@@ -165,6 +165,22 @@ proc portbump::bump_main {args} {
             ui_msg [format "New %-8s %s" ${type}: $calculated_sum]
         }
 
+        if {[info exists macports::ui_options(questions_yesno)]} {
+            set retval [$macports::ui_options(questions_yesno) $msg "BumpPrompt" "" {y} 0 "Do you approve of these changes?"]
+            if {$retval == 0} {
+                # User said yes
+                # TODO: Ask to reset revision number only if > 0 and pass revision number to message.
+                set retval [$macports::ui_options(questions_yesno) $msg "BumpPrompt" "" {y} 0 [format "Do you want to reset revision number (currently %s) to 0?" $revision]]
+                if {$retval == 0} {
+                    # User said yes
+                    # TODO: Reset revision to 0
+                }
+            } else {
+                # User said no
+                return 0
+            }
+        }
+
         set patterns {}
 
         set whitespace {[[:space:]\\]+}
