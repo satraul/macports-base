@@ -35,6 +35,18 @@ package provide porttrace 1.0
 package require Pextlib 1.0
 package require portutil 1.0
 
+options use_xcode
+# defaults
+default use_xcode {[use_xcode_default]}
+
+# Unless build.type is xcode, default for use_xcode is no.
+proc use_xcode_default {} {
+    if {[option build.type] eq "xcode"} {
+        return yes
+    }
+    return no
+}
+
 namespace eval porttrace {
     ##
     # The fifo currently used as server socket to establish communication
@@ -136,7 +148,6 @@ namespace eval porttrace {
 
         variable fifo
         variable fifo_mktemp_template
-        set PLACEHOLDER_DENY_XCODE no
 
         if {[catch {package require Thread} error]} {
             ui_warn "Trace mode requires Tcl Thread package ($error)"
@@ -228,7 +239,7 @@ namespace eval porttrace {
         }
         lappend xcode_paths [file join {*}$ddsplit]
 
-        if {[tbool PLACEHOLDER_DENY_XCODE]} {
+        if {[option use_xcode] eq "no"} {
             foreach xcode_path $xcode_paths {
                 deny trace_sandbox $xcode_path
             }
