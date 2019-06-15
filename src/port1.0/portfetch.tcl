@@ -610,7 +610,7 @@ proc portfetch::fetch_addfilestomap {filemapname} {
 # Utility function to error out if Xcode is needed
 proc portfetch::checkxcode {} {
     global use_xcode developer_dir
-    if {$use_xcode eq "yes" && $developer_dir eq ""} {
+    if {$use_xcode eq "yes" && $xcodeversion eq "none"} {
         return -code error "This port requires Xcode, which was not found on your system."
     }
 }
