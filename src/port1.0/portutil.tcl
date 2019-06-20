@@ -3300,7 +3300,7 @@ proc _check_xcode_version {} {
             }
         }
         if {$xcodeversion eq "none"} {
-            ui_warn "Xcode does not appear to be installed; most ports will likely fail to build."
+            warn_xcode_uninstalled
             if {[file exists "/Applications/Install Xcode.app"]} {
                 ui_warn "You downloaded Xcode from the Mac App Store but didn't install it. Run \"Install Xcode\" in the /Applications folder."
             }
@@ -3413,4 +3413,51 @@ proc _archive_available {} {
 
     set archive_available_result 0
     return 0
+}
+
+# Warns the user that they do not have Xcode if last warning has been more than two weeks.
+proc warn_xcode_uninstalled {} {
+    set time [read_last_xcode_warning]
+    set msg "Xcode does not appear to be installed; some ports will likely fail to build."
+
+    ui_debug "Xcode is not installed. Displaying warning if the last warning has been more than two weeks."
+    if {![string is wideinteger -strict $time] || [clock seconds] - $time > 1209600} {
+        ui_warn $msg
+        write_last_xcode_warning [clock seconds]
+    }
+}
+
+proc read_last_xcode_warning {} {
+    global portdbpath
+    set path [file join ${portdbpath} last_xcode_warning]
+    set fd -1
+    set contents ""
+    try -pass_signal {
+        set fd [open $path r]
+        set contents [gets $fd]
+    } catch {*} {
+        # Ignore error silently; the file might not have been created yet
+    } finally {
+        if {$fd != -1} {
+            close $fd
+        }
+    }
+    return $contents
+}
+
+
+proc write_last_xcode_warning {contents} {
+    global portdbpath
+    set path [file join ${portdbpath} last_xcode_warning]
+    set fd -1
+    try -pass_signal {
+        set fd [open $path w]
+        puts $fd $contents
+    } catch {*} {
+        # Ignore error silently
+    } finally {
+        if {$fd != -1} {
+            close $fd
+        }
+    }
 }
